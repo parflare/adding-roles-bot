@@ -79,16 +79,15 @@ function handleMessage(message) {
     }
 }
 
-function handleCallbackQuery(callbackQuery) {
-  let user = callbackQuery.from;
-  if (callbackQuery.data === "register") {
+function handleCallbackQuery(callback_query) {
+  let user = callback_query.from;
+  if (callback_query.data === "register") {
     registerUser(user);
   }
-  if (callbackQuery.data === "reveiving") {
+  if (callback_query.data === "reveiving") {
     setPingStatus(user.id, true);
   }
-  if (callbackQuery.data === "muted") {
+  if (callback_query.data === "muted") {
     setPingStatus(user.id, false);
-
   }
 }
