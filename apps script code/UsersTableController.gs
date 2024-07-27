@@ -10,7 +10,6 @@ function addUserToTable(user) {
       [user.id, 
       user.username, 
       null,
-      null, 
       user.first_name + (user.last_name ? (' ' + user.last_name) : ''),
       true,
       checkIsAdmin(user.id)]); 
