@@ -11,11 +11,12 @@ function registerUser(user){
 
 function splitString(regex, input) {
   const matches = input.match(regex);
+  //Logger.log(matches)
 
   // Перевіряємо, чи знайдено відповідність
   if (matches) {
     // Повертаємо групи як об'єкт
-    return matches;
+    return matches.filter(match => match !== undefined);
   } else {
     // Якщо відповідність не знайдено
     return null;
