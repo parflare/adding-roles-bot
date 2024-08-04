@@ -7,7 +7,7 @@ function addUserToTable(user) {
     // Додавання нового користувача
     getSS('Users').appendRow(
       [user.id, 
-      '@' + user.username, 
+      user.username ? '@' + user.username : user.id, 
       null, 
       user.first_name + (user.last_name ? (' ' + user.last_name) : ''),
       true,
@@ -38,7 +38,42 @@ function getUserInfo(data){ //тег або айді
   }
   let userRole = getRoleById(user.roles);
   let text = `Nickname: ${user.chosenNickname}
-Tag: ${user.userName}
+Tag: ${Number.isInteger(user.userName) ? 'No tag. Get one, dude..' : user.userName.slice(1)}
+Role: ${userRole === null ? 'none' : userRole}
+Receiving: ${user.receiving}
+Is admin: ${user.isAdmin}`;
+  sendMessage(text);
+  return true;
+}
+
+function setChosenNickName(id, newChosenNickName){ //тег або айді
+  const ss = getSS('Users');
+  const data = ss.getDataRange().getValues();
+  const userIds = data.map(row => row[0]);
+  const rowIndex = userIds.indexOf(id);
+  if(rowIndex !== -1){
+    ss.getRange('D' + (rowIndex+1)).setValue(newChosenNickName);
+    return true;
+  } else {
+    sendMessage('Choose role pls.')
+  }
+  return false;
+}
+
+function getUserByNickName(data){ //тег або айді
+
+  let user = getUserByChosenNickNameIfPresent(data); 
+  
+  if(user === null){
+    return false;
+  }
+
+  let userRole = getRoleById(user.roles);
+
+  let json = getChatMember(user.userID);
+  
+  let text = `Nickname: ${user.chosenNickname}
+CurrenNickName: ${json.user.first_name}
 Role: ${userRole === null ? 'none' : userRole}
 Receiving: ${user.receiving}
 Is admin: ${user.isAdmin}`;
@@ -79,9 +114,8 @@ function getRole(userId, role, adminRights){
     //sendMessage(`Role ${role} found.`);
 
     let rowIndex = checkIfUserPresentInTable(userId);
-    //Logger.log('getRole: C' + rowIndex);
     getSS('Users').getRange('C' + rowIndex).setValue(roleId);
-    sendMessage(`${user.userName.slice(1)} joined ${role}!`)
+    sendMessage(`${user.chosenNickname} joined ${role}!`)
 
     return true;
   } else {
@@ -98,7 +132,8 @@ function setRoleToUser(messageId, userId, userTag, role){
   }
 
   let user = getUserByTagIfPresent(userTag);
-  
+  //sendMessage(JSON.stringify(user, null, 5));
+
   if (user) {
     return getRole(user.userID, role, true);
   }
@@ -122,17 +157,13 @@ function updateUsersTableData(messageId, userId, auto){
     }
   }
 
-  const ssId = 'id';
-  Logger = BetterLog.useSpreadsheet(ssId);
-
   let ssUsers = getSS('Users');
   let oldUsersData = ssUsers.getDataRange().getValues();
   oldUsersData.shift();
   
-
   for(let a = 0; a < oldUsersData.length; a++){
     let json = getChatMember(oldUsersData[a][0]);
-    let newUserName = '@' + json.user.username;
+    let newUserName = json.user.username ? '@' + json.user.username : json.user.id;
     let newStatus = json.status;
 
     ssUsers.getRange('B' + (a+2)).setValue(newUserName);
@@ -180,8 +211,30 @@ function getUserByIdIfPresent(id){
 function getUserByTagIfPresent(userTag){
   const data = getSS('Users').getDataRange().getValues();
 
-  const userTags = data.map(row => row[1]);
+  const userTags = data.map(row => row[1].toString());
   const rowIndex = userTags.indexOf(userTag);
+  if(rowIndex === -1){
+    return null;
+  }
+
+  const row = getSS('Users').getRange((rowIndex + 1), 1, 1, getSS('Users').getLastColumn()).getValues()[0];
+
+  return {
+    userID: row[0],
+    userName: row[1],
+    roles: row[2],
+    chosenNickname: row[3],
+    receiving: row[4],
+    isAdmin: row[5],
+  };
+}
+
+function getUserByChosenNickNameIfPresent(chosenNickName){
+  const data = getSS('Users').getDataRange().getValues();
+
+  const userChosenNickNames = data.map(row => row[3].toString());
+  const rowIndex = userChosenNickNames.indexOf(chosenNickName);
+
   if(rowIndex === -1){
     return null;
   }

@@ -7,7 +7,7 @@ function doPost(e) {
 
    if (update.message) {
     senderChatId = update.message.chat.id.toString();
-    //sendMessage(JSON.stringify(update.message.chat, null, 5));
+    //sendMessage(JSON.stringify(update.message, null, 5));
     if(checkChatId(senderChatId)){
       handleMessage(update.message);
     }
