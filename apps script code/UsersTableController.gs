@@ -122,7 +122,7 @@ function updateUsersTableData(messageId, userId, auto){
     }
   }
 
-  const ssId = '1_mVzKiD970dnFTkWeWmrZiLyzbnObqfL8g8n5FewR1w';
+  const ssId = 'id';
   Logger = BetterLog.useSpreadsheet(ssId);
 
   let ssUsers = getSS('Users');
