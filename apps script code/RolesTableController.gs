@@ -1,6 +1,7 @@
-function addRoleToTable(userId, role) {
+function addRoleToTable(messageId, userId, role) {
   if(!checkIsAdmin(userId)){
-    return;
+    sendReplyMessageWithGif(messageId, 'Wait a minute... Who are you?');
+    return false;
   }
 
   const rowIndex = checkIfRolePresentInTableByName(role);
@@ -11,14 +12,18 @@ function addRoleToTable(userId, role) {
 
     const maxValue = Math.max(...rolesIds);
     getSS('Roles').appendRow([(maxValue + 1), role]); 
-    sendMessage(`Role ${role} added.`);
+    //sendMessage(`Role ${role} added.`);
+    return true;
   } else {
     sendMessage(`Role ${role} already exist.`);
+    return false;
   }
-
+  
 }
 
 function getRolesList(){
+  try{
+
   let usersData = getSS('Users').getDataRange().getValues();
   usersData.shift();
 
@@ -56,25 +61,61 @@ function getRolesList(){
     let userNames = dict[key].join('\n');
     text += `\n<b>${rolesMap[key]} (${dict[key].length}/${usersData.length}):</b>\n\<code>${userNames}\</code>\n`
 }
-  text += `\n<b>Unregistered users: ${usersOverralNumber - usersData.length}</b>\n`
+  text += `\n<b>Unregistered users: ${usersOverralNumber  - 1 - usersData.length}</b>\n`
   sendMessage(text);
+    return true;
+  } catch (e){
+    sendMessage(e);
+    return false;
+  }
 
 }
 
-function deleteRoleInTable(userId, role) {
+function pingRole(messageId, userId, roleName){
+  if(!checkIsAdmin(userId)){
+    sendReplyMessage(messageId, 'Permission denied!');
+    return false;
+  }
+
+  let role = getRoleByName(roleName);
+
+  if(role === -1){
+    return false;
+  }
+
+  let userSS = getSS("Users").getDataRange().getValues();
+  userSS.shift();
+  var text = roleName + ` meetup!`;
+  
+  for(let a = 0; a < userSS.length; a++){
+    if(userSS[a][2] === role){
+      text += `\n`
+      text += userSS[a][1];
+    }
+  }
+
+  sendMessage(text);
+  return true;
+
+}
+
+function deleteRoleInTable(messageId, userId, role) {
     if(!checkIsAdmin(userId)){
-    return;
+    sendReplyMessageWithGif(messageId, 'Wait a minute... Who are you?');
+    return false;
   }
 
   const rowIndex = checkIfRolePresentInTableByName(role);
 
   if (rowIndex === -1) {
-    sendMessage(`Role ${role} doesn\`t exist.`);
+    sendReplyMessage(messageId,`Role ${role} doesn\`t exist.`);
+    return false;
   } else {
     //спочатку видалив, а потім шукаєм ID, геніально, виправлено
     updateRoles(getSS('Roles').getRange('A' + rowIndex).getValues());
     getSS('Roles').deleteRow(rowIndex);
-    sendMessage(`Role ${role} removed.`);
+    //sendMessage(`Role ${role} removed.`);
+    return true;
   }
 }
 
