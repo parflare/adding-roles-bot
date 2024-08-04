@@ -12,6 +12,7 @@ function addUserToTable(user) {
       user.first_name + (user.last_name ? (' ' + user.last_name) : ''),
       true,
       checkIsAdmin(user.id)]); 
+      sendMessage(`User ${user.username} (${user.first_name + (user.last_name ? (' ' + user.last_name) : '')}) registered.`)
   }
 
 }
@@ -32,6 +33,9 @@ function getUserInfo(data){ //тег або айді
   } else {
     user = getUserByTagIfPresent(data); //текст
   }
+  if(user === null){
+    return false;
+  }
   let userRole = getRoleById(user.roles);
   let text = `Nickname: ${user.chosenNickname}
 Tag: ${user.userName}
@@ -39,6 +43,7 @@ Role: ${userRole === null ? 'none' : userRole}
 Receiving: ${user.receiving}
 Is admin: ${user.isAdmin}`;
   sendMessage(text);
+  return true;
 }
 
 function checkIsAdmin(userId){
@@ -51,53 +56,103 @@ function checkIsAdmin(userId){
   }
 }
 
-function getRole(userId, role){
-  if(role === '' || getSS('settings').getRange('B9').getValue() === false){
-    return;
+function getRole(userId, role, adminRights){
+  let user = getUserByIdIfPresent(userId);
+  
+  if(!adminRights){
+    if(user.roles !== '' && getSS('settings').getRange('B9').getValue() === false){
+      sendMessage("Denied");
+      return false;
+    }
   }
+
+  if(role === ''){
+    sendMessage('Type something...');
+    return false;
+  }
+  
 
   let roleId = getRoleByName(role);
 
 
   if(roleId !== -1){
-    sendMessage(`Role ${role} found.`);
+    //sendMessage(`Role ${role} found.`);
 
     let rowIndex = checkIfUserPresentInTable(userId);
     //Logger.log('getRole: C' + rowIndex);
     getSS('Users').getRange('C' + rowIndex).setValue(roleId);
+    sendMessage(`${user.userName.slice(1)} joined ${role}!`)
+
+    return true;
   } else {
-    sendMessage(`Role ${role} not found.`);
+    //sendMessage(`Role ${role} not found.`);
+    return false;
   }
 }
 
-function setRoleToUser(userId, userTag, role){
+function setRoleToUser(messageId, userId, userTag, role){
 
   if(!checkIsAdmin(userId)){
-    return;
+    sendReplyMessageWithGif(messageId,'Wait a minute... Who are you?');
+    return false;
   }
 
   let user = getUserByTagIfPresent(userTag);
   
   if (user) {
-    getRole(user.userID, role);
+    return getRole(user.userID, role, true);
   }
 
 }
-
-
 
 function getRegisteredMembersCount() {
   return getSS('Users').getRange('A2:A').getLastRow();
 }
 
-function updateAdministrators() {
-  let json = getChatAdministrators();
+function updateUsersTableData(messageId, userId, auto){
+  try{
+  if(auto !== true && auto !== false){
+    auto = true;
+  }
 
+  if(!auto){//auto - перевірка чи функція викликається автоматично чи вручну, тому тут вкладений
+    if(!checkIsAdmin(userId)){
+      sendReplyMessageWithGif(messageId, 'Wait a minute... Who are you?');
+      return false;
+    }
+  }
+
+  const ssId = '1_mVzKiD970dnFTkWeWmrZiLyzbnObqfL8g8n5FewR1w';
+  Logger = BetterLog.useSpreadsheet(ssId);
+
+  let ssUsers = getSS('Users');
+  let oldUsersData = ssUsers.getDataRange().getValues();
+  oldUsersData.shift();
   
-  json.result.forEach(admin => {
-    //const {}
-  });
-  
+
+  for(let a = 0; a < oldUsersData.length; a++){
+    let json = getChatMember(oldUsersData[a][0]);
+    let newUserName = '@' + json.user.username;
+    let newStatus = json.status;
+
+    ssUsers.getRange('B' + (a+2)).setValue(newUserName);
+    ssUsers.getRange('F' + (a+2)).setValue(statusToIsAdmin(newStatus));
+  }
+  return true;
+
+  } catch(err){
+    console.log(err);
+    return false;
+  }
+
+}
+
+function statusToIsAdmin(statusToCheck){
+  if(statusToCheck === 'creator' || statusToCheck === 'administrator'){
+    return true;
+  } else {
+    return false;
+  }
 }
 
 function getUserByIdIfPresent(id){
@@ -143,16 +198,24 @@ function getUserByTagIfPresent(userTag){
   };
 }
 
-function removeRoleById(userId){
+function removeRoleById(messageId, userId){
+  if(!checkIsAdmin(userId)){
+    if(getSS('settings').getRange('B9').getValue() === false){
+      sendReplyMessage(messageId, "Denied");
+      return false;
+    }
+  }
+
   let indexRow =  checkIfUserPresentInTable(userId);
-  let replyMessage;
+  let res;
   if(indexRow === -1){
-    replyMessage = `User with id ${userId} not registered`;
+    sendMessage(`User with id ${userId} not registered`);
+    res = false;
   } else {
     getSS('Users').getRange('C' + indexRow).setValue(null);
-    replyMessage = `Role successfully removed`;
+    res = true;
   }
-  sendMessage(replyMessage);
+  return res;
 
 }
 

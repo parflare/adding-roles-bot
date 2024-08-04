@@ -34,9 +34,10 @@ function setBotValue(endpoint, payload, newValue, currentValue) {
 }
 
 function setParamsToBot() {
+  let ssSettings = getSS(`settings`);
   ssSettings.getRange("C2:C").clearContent();
   
-  let allData = ss.getDataRange().getDisplayValues();
+  let allData = ssSettings.getDataRange().getDisplayValues();
   let newName = allData[1][1];
   let newDescription = allData[2][1];
   let newShortDescription = allData[3][1];
@@ -52,5 +53,17 @@ function setParamsToBot() {
   ];
 
   ssSettings.getRange(2, 3, dataToPut.length, dataToPut[0].length).setValues(dataToPut);
+}
+
+function toggleBotRoleSettingMode(messageId, userId){
+  if(checkIsAdmin(userId)){
+    let ssSettings = getSS(`settings`);
+    var parameter = !ssSettings.getRange('B9').getValue();
+
+    ssSettings.getRange('B9').setValue(parameter);
+    sendReplyMessage(messageId, 'Bot\'s role mode changed to: ' + parameter);
+    return true;
+  }
+  return false;
 }
 

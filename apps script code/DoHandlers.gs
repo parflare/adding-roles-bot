@@ -13,7 +13,8 @@ function handleBotRightsChanged(my_chat_member){
 }
 
 function handleMessage(message) {
-
+  //sendMessage(JSON.stringify(message))
+  
   let user = message.from;
 
   let messageText = message.text;
@@ -22,73 +23,75 @@ function handleMessage(message) {
     messageText = messageText.replace('@adding_roles_bot', '');
   }
   
-  //let regex = /^[\/]([^\s]+)$|^[\/]([^\s]+)\s+([^\s]+)\s+(.+)$|^[\/]([^\s]+)\s+(.+)$/;
   const commandParts = messageText.match(/^\/(\w+)(?:\s+(.+))?$/);
-  //Logger.log(commandParts);
-  //const commandParts = splitString(regex, messageText);
-
-  //Logger.log(commandParts);
 
   let command = commandParts[1];
-  
   
   //let [command, ...rest] = messageText.split(' ');
   //rest = rest.join(' ');
   //Logger.log(command);
-  
+  let result;
   switch (command) {
-    case 'submsg':
-      sendRegistrationMessage();
+    case 'submsg'://done
+      result = sendRegistrationMessage();
       break;
-    case 'rolesmsg':
-      sendGetRolesMessage();
+    case 'rolesmsg'://done
+      result = sendGetRolesMessage();
       break;
-    case 'setrole': 
+    case 'setrole': //admin only! done
       const newCommandParts = commandParts[2].match(/^(@\w+)\s+(.*)$/);
-      setRoleToUser(user.id, newCommandParts[1], newCommandParts[2]);
+      result = setRoleToUser(message.message_id, user.id, newCommandParts[1], newCommandParts[2]);
       break;
-    case 'addrole':
-      addRoleToTable(user.id, commandParts[2]);
+    case 'addrole': //admin only! done
+      result = addRoleToTable(message.message_id, user.id, commandParts[2]);
       break;
-    case 'deleterole':
-      deleteRoleInTable(user.id, commandParts[2]);
+    case 'deleterole': //admin only! done
+      result = deleteRoleInTable(message.message_id, user.id, commandParts[2]);
       break;
-    case 'removerole':
-      removeRoleById(user.id);
+    case 'removerole': //admin only! done
+      result = removeRoleById(message.message_id, user.id);
       //убрати роль собі по айдішніку
       break;
-    case 'userinfo':
+    case 'userinfo': //done
       if(commandParts[2]){
-        getUserInfo(commandParts[2]);
+        result = getUserInfo(commandParts[2]);
       } else {
-        getUserInfo(user.id);
+        result = getUserInfo(user.id);
       }
       //показати інфо про користувача (про себе якщо не вказан користувач)
       break;
-    case 'roleslist':
-      getRolesList();
+    case 'roleslist': //done
+      result = getRolesList();
       //показати список користувачів у ролях (у форматі Роль $(кількість у ролі)/$(кількість всього): список) БЕЗ ПІНГА, ПО НІКАМ
       break;
-    case 'updateusers':
+    case 'updateusers': //admin only!
       //апдейт інфи про юзерів, автоматично, але можна і в ручну
       break;   
-    case 'pingrole':
+    case 'pingrole': //admin only! done
+      result = pingRole(message.message_id, user.id, commandParts[2]); //Готово
       //Пінг всіх з ролі
       break;    
-    case 'togglereceive':
+    case 'togglereceive': //done
       //це вже є, кнопкою зроблено
       break;     
-    case 'togglebotmode':
-      //врубити чи вирубити можливість переназначення собі ролі (коли false - не можна убрати собі роль і вибрати іншу якщо вже є одна або взагалі не можна якщо це буде складніше)
+    case 'togglebotmode': //admin only! done
+      result = toggleBotRoleSettingMode(message.message_id, user.id);
+      //врубити чи вирубити можливість переназначення собі ролі (коли false - не можна убрати собі роль і вибрати іншу якщо вже є одна або взагалі не можна якщо це буде складно)
       break;                  
     case 'help':
-      //перелік всіх функцій з описом і форматом написання
-      break;
+      result = sendHelpMessage();
+    break;
     default:
-      //повідомлення "Unknown comand"
+      //sendMessage("Unknown command")
+      setMessageReaction(message.message_id, "🤨");
       break;
     }
+    if(result !== undefined){
+      setMessageReaction(message.message_id, result ? '👍' :  '👎');
+    }
 }
+
+
 
 function handleCallbackQuery(callback_query) {
 
@@ -100,7 +103,7 @@ function handleCallbackQuery(callback_query) {
     registerUser(user);
     setPingStatus(user.id, false);
   }
-  if (callback_query.data === "reveiving") {
+  if (callback_query.data === "receiving") {
     setPingStatus(user.id, true);
   }
   if (callback_query.data === "muted") {
@@ -108,6 +111,6 @@ function handleCallbackQuery(callback_query) {
   }
   if (callback_query.data.startsWith("getrole")) {
     let role = callback_query.data.split(' ', 2);
-    getRole(user.id, role[1]);
+    getRole(user.id, role[1], false);
   }
 }
