@@ -19,10 +19,16 @@ function handleMessage(message) {
 
   let messageText = message.text;
 
+  let userWithOutTag;
+  
+  if(message.entities[1] && message.entities[1].user){
+    userWithOutTag = message.entities[1].user.id.toString();
+  }
+
   if(messageText.includes('@adding_roles_bot')){ //переробити під поточний тег бота
     messageText = messageText.replace('@adding_roles_bot', '');
   }
-  
+
   const commandParts = messageText.match(/^\/(\w+)(?:\s+(.+))?$/);
 
   let command = commandParts[1];
@@ -31,16 +37,21 @@ function handleMessage(message) {
   //rest = rest.join(' ');
   //Logger.log(command);
   let result;
+  let newCommandParts;
   switch (command) {
-    case 'submsg'://done
+    case 'pingmode'://done
       result = sendRegistrationMessage();
       break;
     case 'rolesmsg'://done
       result = sendGetRolesMessage();
       break;
     case 'setrole': //admin only! done
-      const newCommandParts = commandParts[2].match(/^(@\w+)\s+(.*)$/);
-      result = setRoleToUser(message.message_id, user.id, newCommandParts[1], newCommandParts[2]);
+      newCommandParts = commandParts[2].match(/^(@*\w+)\s+(.*)$/);
+      if(userWithOutTag){
+        result = setRoleToUser(message.message_id, user.id, userWithOutTag, newCommandParts[2]);
+      } else {
+        result = setRoleToUser(message.message_id, user.id, newCommandParts[1], newCommandParts[2]);
+      }
       break;
     case 'addrole': //admin only! done
       result = addRoleToTable(message.message_id, user.id, commandParts[2]);
@@ -52,13 +63,27 @@ function handleMessage(message) {
       result = removeRoleById(message.message_id, user.id);
       //убрати роль собі по айдішніку
       break;
+    case 'find': //done
+      if(commandParts[2]){
+        result = getUserByNickName(commandParts[2]);
+      }
+      //показати інфо про користувача 
+      break;
     case 'userinfo': //done
       if(commandParts[2]){
-        result = getUserInfo(commandParts[2]);
+        if(userWithOutTag){
+          result = getUserInfo(Number.parseInt(userWithOutTag));
+        } else {
+          result = getUserInfo(commandParts[2]);
+        }
       } else {
         result = getUserInfo(user.id);
       }
       //показати інфо про користувача (про себе якщо не вказан користувач)
+      break;
+    case 'changename': //done
+        result = setChosenNickName(user.id, commandParts[2]);
+        //поміняти касотомний юзернейм
       break;
     case 'roleslist': //done
       result = getRolesList();
@@ -96,13 +121,7 @@ function handleMessage(message) {
 function handleCallbackQuery(callback_query) {
 
   let user = callback_query.from;
-  if (callback_query.data === "register") {
-    registerUser(user);
-  }
-  if (callback_query.data === "silence_register") {
-    registerUser(user);
-    setPingStatus(user.id, false);
-  }
+
   if (callback_query.data === "receiving") {
     setPingStatus(user.id, true);
   }
@@ -110,7 +129,11 @@ function handleCallbackQuery(callback_query) {
     setPingStatus(user.id, false);
   }
   if (callback_query.data.startsWith("getrole")) {
-    let role = callback_query.data.split(' ', 2);
-    getRole(user.id, role[1], false);
+    registerUser(user);
+    //sendMessage(JSON.stringify(callback_query.data))
+    const newCommandParts = callback_query.data.match(/^(\w+)\s+(.*)$/);
+    let role = newCommandParts[2];
+
+    getRole(user.id, role, false);
   }
 }

@@ -54,6 +54,40 @@ function sendMessage(text){
   return UrlFetchApp.fetch(url, payload);
 }
 
+function tagUndefined(){
+    const botSettings = readSettings();
+  const url = `https://api.telegram.org/bot${botSettings.token}/sendMessage`;
+
+  const payload = {
+    method: "post",
+    payload: {
+      chat_id: '-1002188291528',
+      text: '<a href="tg://user?id=5201687015">inline mention of a user</a>',
+      parse_mode: 'HTML'
+    },
+    muteHttpExceptions: true
+  };
+
+  return UrlFetchApp.fetch(url, payload);
+}
+
+function noTagUndefined(){
+    const botSettings = readSettings();
+  const url = `https://api.telegram.org/bot${botSettings.token}/sendMessage`;
+
+  const payload = {
+    method: "post",
+    payload: {
+      chat_id: '-1002188291528',
+      text: 'tg://user?id=5201687015',
+      parse_mode: 'HTML'
+    },
+    muteHttpExceptions: true
+  };
+
+  return UrlFetchApp.fetch(url, payload);
+}
+
 function sendReplyMessage(messageId, text){
   const botSettings = readSettings();
   const url = `https://api.telegram.org/bot${botSettings.token}/sendMessage`;
@@ -102,13 +136,15 @@ function sendHelpMessage() {
     <b>Available Commands:</b>
 
     <b>General Commands:</b>
-    <b>/submsg</b> - Send a registration message.
-    <b>/rolesmsg</b> - Send a message to obtain roles.
+    <b>/rolesmsg</b> - Send a registration message.
+    <b>/changename newName</b> - Change current nick name.
+    <b>/pingmode</b> - Send a message to toggle ping mode.
     <b>/userinfo @user</b> - Show information about a user. If no user is specified, it will show your information.
     <i>Example:</i> <code>/userinfo @username</code>
     <b>/roleslist</b> - Display the list of users by roles in the format: Role $(number in role)/$(total number): list.
 
     <b>Administrator Commands:</b>
+    <b>/find chosenNickName</b> - Show information about a user by chosen nick name.
     <b>/setrole @user role</b> - Assign a role to a specific user.
     <i>Example:</i> <code>/setrole @username Moderator</code>
     <b>/addrole role</b> - Add a new role to the table.
@@ -125,11 +161,8 @@ function sendHelpMessage() {
 
 function sendRegistrationMessage() {
   return sendMessageWithKeyb(
-    "Click to register", 
+    "Click to change ping mode (under CUMstruction (c)EliksP)", 
         [
-          [
-            { text: "✅✍️ (registration)", callback_data: "register" }
-          ],
           [
             { text: "🔈 (volume on)", callback_data: "receiving" },
             { text: "🔇 (volume off)", callback_data: "muted" }

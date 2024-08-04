@@ -4,13 +4,22 @@ function addRoleToTable(messageId, userId, role) {
     return false;
   }
 
+  if(role === undefined || role === '' || role === ' '){
+    return false;
+  }
+
   const rowIndex = checkIfRolePresentInTableByName(role);
 
   if (rowIndex === -1) {
     const idValues = getRolesDataRangeValues()
     const rolesIds = idValues.map(row => row[0]);
 
-    const maxValue = Math.max(...rolesIds);
+    let maxValue = Math.max(...rolesIds);
+
+    if(idValues.length === 0){
+      maxValue = 0;
+    }
+
     getSS('Roles').appendRow([(maxValue + 1), role]); 
     //sendMessage(`Role ${role} added.`);
     return true;
@@ -42,7 +51,7 @@ function getRolesList(){
   dict[0] = [];
 
   for(let a = 0; a < usersData.length; a++){
-    let userChosenNickname = usersData[a][3];
+    let userChosenNickname = '<code>' + usersData[a][3] + '</code>';
     let userRoleId = usersData[a][2];
 
     if(!userRoleId){
@@ -59,7 +68,7 @@ function getRolesList(){
       continue;
     }
     let userNames = dict[key].join('\n');
-    text += `\n<b>${rolesMap[key]} (${dict[key].length}/${usersData.length}):</b>\n\<code>${userNames}\</code>\n`
+    text += `\n<b>${rolesMap[key]} (${dict[key].length}/${usersData.length}):</b>\n${userNames}\n`
 }
   text += `\n<b>Unregistered users: ${usersOverralNumber  - 1 - usersData.length}</b>\n`
   sendMessage(text);

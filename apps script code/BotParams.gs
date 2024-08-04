@@ -6,14 +6,14 @@ function setWebHook(){
 
 //зберігає базову інфу про чат при додаванні бота
 function saveChatInfoIfNotSaved(chatId, groupName, groupType) {
-  if(getSS('chats').getDataRange().getValues().length < 4){
+  if(getSS('chats').getDataRange().getValues().length < 5){
   getSS('chats').appendRow([chatId, groupName, groupType]);
   }
 }
 
 function getChatId(){
   //return getSS('chats').getRange('A2').getValue().toString();
-  return senderChatId;
+  return senderChatId !== '' ? senderChatId : getSS('chats').getRange('A2').getValue().toString();
 }
 
 function getTestChatId(){
