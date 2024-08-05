@@ -158,17 +158,22 @@ function updateUsersTableData(messageId, userId, auto){
   }
 
   let ssUsers = getSS('Users');
-  let oldUsersData = ssUsers.getDataRange().getValues();
+  let useraDataRange = ssUsers.getDataRange();
+  let oldUsersData = useraDataRange.getValues();
   oldUsersData.shift();
-  
-  for(let a = 0; a < oldUsersData.length; a++){
-    let json = getChatMember(oldUsersData[a][0]);
-    let newUserName = json.user.username ? '@' + json.user.username : json.user.id;
-    let newStatus = json.status;
 
-    ssUsers.getRange('B' + (a+2)).setValue(newUserName);
-    ssUsers.getRange('F' + (a+2)).setValue(statusToIsAdmin(newStatus));
+    let newUserName = [];
+    let newUserStatus = [];
+
+    for(let a = 0; a < oldUsersData.length; a++){
+    let json = getChatMember(oldUsersData[a][0]);
+    newUserName[a] = [json.user.username ? '@' + json.user.username : json.user.id];
+    newUserStatus[a] = [statusToIsAdmin(json.status)];
   }
+
+  ssUsers.getRange('B2:B' + useraDataRange.getLastRow()).setValues(newUserName);
+  ssUsers.getRange('F2:F' + useraDataRange.getLastRow()).setValues(newUserStatus);
+
   return true;
 
   } catch(err){

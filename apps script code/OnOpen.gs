@@ -2,7 +2,7 @@ function onOpen(e) {
   SpreadsheetApp.getUi()
     .createMenu('Bot functions')
     .addItem('Update settings', 'setParamsToBot')
-    //.addItem('Load users', 'getChatMembers')
+    .addItem('Update users', 'updateUsersTableData')
     .addSeparator()
     .addItem('Set Webhook', 'setWebHook')
     .addItem('Delete Webhook', 'deleteWebhook')
