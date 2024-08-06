@@ -98,8 +98,13 @@ function pingRole(messageId, userId, roleName){
   
   for(let a = 0; a < userSS.length; a++){
     if(userSS[a][2] === role){
-      text += `\n`
-      text += userSS[a][1];
+      let data = userSS[a][1];
+      text += `\n`;
+      if(Number.isInteger(data)){
+        text += `<a href="tg://user?id=${data}">${userSS[a][3]}</a>`;
+      } else {
+        text += `${data} (${userSS[a][3]})`;
+      }
     }
   }
 

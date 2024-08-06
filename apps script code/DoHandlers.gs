@@ -92,7 +92,7 @@ function handleMessage(message) {
     case 'updateusers': //admin only!
       //апдейт інфи про юзерів, автоматично, але можна і в ручну
       break;   
-    case 'pingrole': //admin only! done
+    case 'ping': //admin only! done
       result = pingRole(message.message_id, user.id, commandParts[2]); //Готово
       //Пінг всіх з ролі
       break;    
