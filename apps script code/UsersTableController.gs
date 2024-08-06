@@ -12,7 +12,7 @@ function addUserToTable(user) {
       user.first_name + (user.last_name ? (' ' + user.last_name) : ''),
       true,
       checkIsAdmin(user.id)]); 
-      sendMessage(`User ${user.username} (${user.first_name + (user.last_name ? (' ' + user.last_name) : '')}) registered.`)
+      sendMessage(`User ${user.username ? user.username : 'without tag'} (${user.first_name + (user.last_name ? (' ' + user.last_name) : '')}) registered.`)
   }
 
 }
@@ -47,6 +47,9 @@ Is admin: ${user.isAdmin}`;
 }
 
 function setChosenNickName(id, newChosenNickName){ //тег або айді
+  if(newChosenNickName === '' || newChosenNickName === undefined){
+    return false;
+  }
   const ss = getSS('Users');
   const data = ss.getDataRange().getValues();
   const userIds = data.map(row => row[0]);
@@ -105,10 +108,13 @@ function getRole(userId, role, adminRights){
     sendMessage('Type something...');
     return false;
   }
-  
 
   let roleId = getRoleByName(role);
 
+
+  if(roleId === user.roles){
+    return false;
+  }
 
   if(roleId !== -1){
     //sendMessage(`Role ${role} found.`);
